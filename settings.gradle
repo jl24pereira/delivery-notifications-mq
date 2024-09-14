@@ -1,2 +1,2 @@
 rootProject.name = 'delivery-notifications-mq'
-include 'mq-shipment-procesor'
+include 'mq-shipment-procesor', 'mq-shipment-sender'
