@@ -23,22 +23,8 @@ public class ShipmentService {
      * @return ShipmentResponseDTO indicating success or failure
      */
     public ShipmentResponseDTO processShipment(ShipmentRequestDTO shipmentRequest) {
-        try {
-            LOGGER.info("Processing shipment for orderId: {}", shipmentRequest.orderId());
+        // Delegate to MessageSenderService to send the message to the request queue
+        return messageSenderService.sendShipmentMessage(shipmentRequest);
 
-            // Delegate to MessageSenderService to send the message to the request queue
-            boolean isSent = messageSenderService.sendShipmentMessage(shipmentRequest);
-
-            if (isSent) {
-                LOGGER.info("Shipment for orderId {} processed successfully", shipmentRequest.orderId());
-                return new ShipmentResponseDTO(shipmentRequest.orderId(), "SUCCESS", "Shipment processed successfully");
-            } else {
-                LOGGER.error("Failed to process shipment for orderId {}", shipmentRequest.orderId());
-                return new ShipmentResponseDTO(shipmentRequest.orderId(), "FAILED", "Failed to process shipment");
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error processing shipment for orderId: {}. Error: {}", shipmentRequest.orderId(), e.getMessage());
-            return new ShipmentResponseDTO(shipmentRequest.orderId(), "FAILED", "Error processing shipment: " + e.getMessage());
-        }
     }
 }

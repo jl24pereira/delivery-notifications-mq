@@ -3,6 +3,7 @@ package com.jlpereira.mq_shipment_sender.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jlpereira.mq_shipment_sender.model.dto.ShipmentRequestDTO;
+import com.jlpereira.mq_shipment_sender.model.dto.ShipmentResponseDTO;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.Queue;
@@ -35,7 +36,7 @@ public class MessageSenderService {
      * @param shipmentRequest The shipment request DTO containing shipment details
      * @return true if the message was successfully sent and response received, false otherwise
      */
-    public boolean sendShipmentMessage(ShipmentRequestDTO shipmentRequest) {
+    public ShipmentResponseDTO  sendShipmentMessage(ShipmentRequestDTO shipmentRequest) {
         try {
             // Convert ShipmentRequestDTO to JSON
             String messageContent = convertShipmentToJson(shipmentRequest);
@@ -54,22 +55,23 @@ public class MessageSenderService {
 
             // Wait for the response in the response queue with the same correlation ID
             LOGGER.info("Waiting for response in response queue for correlationId: {}", correlationId);
-            /*Message responseMessage = jmsTemplate.receiveSelected(responseQueue, "JMSCorrelationID='" + correlationId + "'");
+            Message responseMessage = jmsTemplate.receiveSelected(responseQueue, "JMSCorrelationID='" + correlationId + "'");
 
             if (responseMessage instanceof TextMessage textMessage) {
                 String responseText = textMessage.getText();
-                LOGGER.info("Received response for orderId: {} with correlationId: {}: {}", shipmentRequest.orderId(), correlationId, responseText);
-                return true;
+                LOGGER.info("Received response for orderId: {} with correlationId: {}", shipmentRequest.orderId(), correlationId);
+
+                // Convert the response JSON to ShipmentResponseDTO
+                return objectMapper.readValue(responseText, ShipmentResponseDTO.class);
             } else {
                 LOGGER.error("No valid response received for correlationId: {}", correlationId);
-                return false;
-            }*/
+                return new ShipmentResponseDTO(shipmentRequest.orderId(), "FAILED", "No response received");
+            }
 
-        } catch (JsonProcessingException e) {
+        } catch (JsonProcessingException | JMSException e) {
             LOGGER.error("Error sending shipment message for orderId: {}. Error: {}", shipmentRequest.orderId(), e.getMessage());
-            return false;
+            return new ShipmentResponseDTO(shipmentRequest.orderId(), "FAILED", "Error processing shipment: " + e.getMessage());
         }
-        return true;
     }
 
     /**

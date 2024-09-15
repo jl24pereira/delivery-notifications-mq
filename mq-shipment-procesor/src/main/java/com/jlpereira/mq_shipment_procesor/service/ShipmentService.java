@@ -1,6 +1,12 @@
 package com.jlpereira.mq_shipment_procesor.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jlpereira.mq_shipment_procesor.model.dto.ShipmentMessageDTO;
+import com.jlpereira.mq_shipment_procesor.model.dto.ShipmentResponseDTO;
+import jakarta.jms.JMSException;
+import jakarta.jms.Queue;
+import jakarta.jms.TextMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.core.JmsTemplate;
@@ -13,6 +19,8 @@ public class ShipmentService {
 
     private final NotificationService notificationService;
     private final JmsTemplate jmsTemplate;
+    private final Queue responseQueue;
+    private final ObjectMapper objectMapper;
 
     /**
      * Constructor to initialize the shipment service.
@@ -20,9 +28,11 @@ public class ShipmentService {
      * @param notificationService The service responsible for sending notifications (e.g., email)
      * @param jmsTemplate         The JMS template for interacting with the message queue
      */
-    public ShipmentService(NotificationService notificationService, JmsTemplate jmsTemplate) {
+    public ShipmentService(NotificationService notificationService, JmsTemplate jmsTemplate, Queue responseQueue, ObjectMapper objectMapper) {
         this.notificationService = notificationService;
         this.jmsTemplate = jmsTemplate;
+        this.responseQueue = responseQueue;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -35,7 +45,12 @@ public class ShipmentService {
      */
     public void processShipment(ShipmentMessageDTO shipmentMessageDTO, String correlationId) {
         boolean emailSent = sendNotification(shipmentMessageDTO);
-        sendResponseMessage(correlationId, emailSent);
+        ShipmentResponseDTO responseDTO = new ShipmentResponseDTO(
+                shipmentMessageDTO.orderId(),
+                emailSent ? "SUCCESS":"FAILED",
+                emailSent ? "Email sent successfully" : "Email sending failed"
+        );
+        sendResponseMessage(correlationId, responseDTO);
     }
 
     /**
@@ -46,42 +61,44 @@ public class ShipmentService {
      * @return true if the email was sent successfully, false otherwise
      */
     private boolean sendNotification(ShipmentMessageDTO shipmentMessageDTO) {
-        StringBuilder emailBody = new StringBuilder();
-        emailBody.append("Dear customer,\n\n")
-                .append("Your order with ID: ")
-                .append(shipmentMessageDTO.orderId())
-                .append(" has been shipped.\n")
-                .append("Tracking Number: ")
-                .append(shipmentMessageDTO.trackingNumber())
-                .append("\n")
-                .append("Shipping Date: ")
-                .append(shipmentMessageDTO.shippingDate())
-                .append("\n\n")
-                .append("Thank you for shopping with us.\n\n")
-                .append("Best regards,\n")
-                .append("The Shipping Team");
+        String emailBody = "Dear customer,\n\n" +
+                "Your order with ID: " +
+                shipmentMessageDTO.orderId() +
+                " has been shipped.\n" +
+                "Tracking Number: " +
+                shipmentMessageDTO.trackingNumber() +
+                "\n" +
+                "Shipping Date: " +
+                shipmentMessageDTO.shippingDate() +
+                "\n\n" +
+                "Thank you for shopping with us.\n\n" +
+                "Best regards,\n" +
+                "The Shipping Team";
 
-        return notificationService.sendEmail(shipmentMessageDTO.customerEmail(), "Shipment Confirmation", emailBody.toString());
+        return notificationService.sendEmail(shipmentMessageDTO.customerEmail(), "Shipment Confirmation", emailBody);
     }
 
     /**
-     * Sends a response message back to the queue, indicating whether the email was successfully sent.
-     * The response contains the same correlation ID as the original message, allowing the sender
-     * to correlate the response with the original request.
+     * Sends a response message to the response queue indicating success or failure of the email.
      *
-     * @param correlationId The correlation ID from the original message, to link the response to the request
-     * @param success       A boolean indicating whether the email was sent successfully or not
+     * @param correlationId The correlation ID to link request and response
+     * @param responseDTO   The response DTO to send as JSON
      */
-    private void sendResponseMessage(String correlationId, boolean success) {
-        String responseMessage = success ? "Email sent successfully" : "Email sending failed";
+    private void sendResponseMessage(String correlationId, ShipmentResponseDTO responseDTO) {
+        try {
+            String responseJson = objectMapper.writeValueAsString(responseDTO);
 
-        // Create and send response message with the same correlation ID
-        /*jmsTemplate.send("shipping.notifications.response", session -> {
-            TextMessage response = session.createTextMessage(responseMessage);
-            response.setJMSCorrelationID(correlationId); // Set the same correlation ID
-            return response;
-        });*/
+            jmsTemplate.send(responseQueue, session -> {
+                TextMessage response = session.createTextMessage(responseJson);
+                response.setJMSCorrelationID(correlationId); // Set the same correlation ID
+                return response;
+            });
 
-        LOGGER.info("Sent response message: {}  with Correlation ID: {}", responseMessage, correlationId);
+            LOGGER.info("Sent response message: {}  with Correlation ID: {}", responseJson, correlationId);
+
+        } catch (JsonProcessingException e) {
+            LOGGER.error("Error sending response for orderId: {}", responseDTO.orderId(), e);
+        }
+
     }
 }

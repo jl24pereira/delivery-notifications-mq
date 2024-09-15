@@ -1,7 +1,10 @@
 package com.jlpereira.mq_shipment_procesor.config;
 
 import com.ibm.mq.jakarta.jms.MQConnectionFactory;
+import com.ibm.mq.jakarta.jms.MQQueue;
 import com.ibm.msg.client.wmq.common.CommonConstants;
+import jakarta.jms.JMSException;
+import jakarta.jms.Queue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +32,9 @@ public class ConfigMQ {
 
     @Value("${ibm.mq.channel}")
     private String channel;
+
+    @Value("${ibm.mq.queue.response}")
+    private String responseQueue;
 
     /**
      * Creates and configures the MQConnectionFactory bean for IBM MQ.
@@ -76,5 +82,16 @@ public class ConfigMQ {
     @Bean
     public JmsTemplate jmsTemplate(MQConnectionFactory mqConnectionFactory) {
         return new JmsTemplate(mqConnectionFactory);
+    }
+
+    /**
+     * Bean que representa la cola de respuestas.
+     *
+     * @return La cola de respuestas
+     * @throws JMSException si hay algún problema al configurar la cola
+     */
+    @Bean
+    public Queue responseQueue() throws JMSException {
+        return new MQQueue(responseQueue);
     }
 }
