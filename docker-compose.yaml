@@ -11,6 +11,43 @@ services:
       - ibmmq:/data/ibmmq
     container_name: ibmmq
 
+  shipment-processor:
+    build:
+      context: ./mq-shipment-processor
+      dockerfile: Dockerfile
+    container_name: shipment-processor
+    depends_on:
+      - ibmmq
+    environment:
+      - MQ_REQ_QUEUE=${MQ_REQ_QUEUE}
+      - MQ_RES_QUEUE=${MQ_RES_QUEUE}
+      - MQ_QMANAGER=${MQ_QMANAGER}
+      - MQ_HOST=${MQ_HOST}
+      - MQ_PORT=${MQ_PORT}
+      - MQ_CHANNEL=${MQ_CHANNEL}
+      - MQ_USER=${MQ_USER}
+    ports:
+      - "8081:8081"
+
+  shipment-sender:
+    build:
+      context: ./mq-shipment-sender
+      dockerfile: Dockerfile
+    container_name: shipment-sender
+    depends_on:
+      - ibmmq
+      - shipment-processor
+    environment:
+      - MQ_REQ_QUEUE=${MQ_REQ_QUEUE}
+      - MQ_RES_QUEUE=${MQ_RES_QUEUE}
+      - MQ_QMANAGER=${MQ_QMANAGER}
+      - MQ_HOST=${MQ_HOST}
+      - MQ_PORT=${MQ_PORT}
+      - MQ_CHANNEL=${MQ_CHANNEL}
+      - MQ_USER=${MQ_USER}
+    ports:
+      - "8080:8080"
+
 volumes:
   ibmmq:
     driver: local
