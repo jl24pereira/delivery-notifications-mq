@@ -7,8 +7,6 @@ services:
     ports:
       - '1414:1414'
       - '9443:9443'
-    volumes:
-      - ibmmq:/data/ibmmq
     container_name: ibmmq
 
   shipment-processor:
@@ -47,7 +45,3 @@ services:
       - MQ_USER=${MQ_USER}
     ports:
       - "8080:8080"
-
-volumes:
-  ibmmq:
-    driver: local
