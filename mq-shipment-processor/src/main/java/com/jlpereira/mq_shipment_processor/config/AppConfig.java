@@ -1,4 +1,4 @@
-package com.jlpereira.mq_shipment_sender.config;
+package com.jlpereira.mq_shipment_processor.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -6,15 +6,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuration class for creating beans.
+ * Configuration class for application-wide beans.
  */
 @Configuration
 public class AppConfig {
 
     /**
-     * Provides a configured {@link ObjectMapper} bean for JSON serialization/deserialization.
+     * Provides a configured {@link ObjectMapper} bean.
      *
-     * @return Configured {@link ObjectMapper} instance.
+     * @return A configured {@link ObjectMapper} instance.
      */
     @Bean
     public ObjectMapper objectMapper() {

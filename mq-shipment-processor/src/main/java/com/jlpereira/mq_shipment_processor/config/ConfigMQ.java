@@ -1,4 +1,4 @@
-package com.jlpereira.mq_shipment_sender.config;
+package com.jlpereira.mq_shipment_processor.config;
 
 import com.ibm.mq.jakarta.jms.MQConnectionFactory;
 import com.ibm.mq.jakarta.jms.MQQueue;
@@ -8,12 +8,15 @@ import jakarta.jms.Queue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
  * Configuration for IBM MQ and JMS messaging.
  */
 @Configuration
+@EnableJms
 public class ConfigMQ {
 
     @Value("${ibm.mq.host}")
@@ -27,9 +30,6 @@ public class ConfigMQ {
 
     @Value("${ibm.mq.channel}")
     private String channel;
-
-    @Value("${ibm.mq.queue.request}")
-    private String requestQueue;
 
     @Value("${ibm.mq.queue.response}")
     private String responseQueue;
@@ -52,6 +52,19 @@ public class ConfigMQ {
     }
 
     /**
+     * Configures the JMS listener container factory.
+     *
+     * @param mqConnectionFactory The MQ connection factory.
+     * @return Configured DefaultJmsListenerContainerFactory.
+     */
+    @Bean
+    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory(MQConnectionFactory mqConnectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(mqConnectionFactory);
+        return factory;
+    }
+
+    /**
      * Configures the JMS template for sending messages.
      *
      * @param mqConnectionFactory The MQ connection factory.
@@ -59,20 +72,7 @@ public class ConfigMQ {
      */
     @Bean
     public JmsTemplate jmsTemplate(MQConnectionFactory mqConnectionFactory) {
-        JmsTemplate jmsTemplate = new JmsTemplate(mqConnectionFactory);
-        jmsTemplate.setReceiveTimeout(5000);
-        return jmsTemplate;
-    }
-
-    /**
-     * Configures the request queue.
-     *
-     * @return Configured Queue.
-     * @throws JMSException if any error occurs.
-     */
-    @Bean
-    public Queue requestQueue() throws JMSException {
-        return new MQQueue(requestQueue);
+        return new JmsTemplate(mqConnectionFactory);
     }
 
     /**
