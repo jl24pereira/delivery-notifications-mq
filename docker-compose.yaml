@@ -12,7 +12,7 @@ services:
     container_name: ibmmq
     command: >
       sh -c "
-      crtmqm QM1 &&
+      crtmqm -q QM1 &&
       strmqm QM1 &&
       runmqsc QM1 < /etc/mqm/init.mqsc
       "
