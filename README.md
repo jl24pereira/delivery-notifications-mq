@@ -68,7 +68,7 @@ Before running the project, you need to have the following installed:
 2. **Inicia IBM MQ y ambos servicios usando Docker Compose / Start IBM MQ and both services using Docker Compose**:
    Asegúrate de que Docker esté en ejecución, luego ejecuta / Ensure that Docker is running, and then execute:
     ```bash
-    docker-compose up --build
+    docker-compose up -d --build
     ```
 
    Esto levantará los siguientes servicios / This will spin up the following services:
