@@ -11,11 +11,12 @@ services:
       - ./init.mqsc:/etc/mqm/init.mqsc
     container_name: ibmmq
     command: >
-      sh -c "
+      /bin/sh -c "
+      echo 'Initializing config queue manager' &&
       crtmqm -q QM1 &&
       strmqm QM1 &&
-      runmqsc QM1 < /etc/mqm/init.mqsc
-      "
+      runmqsc QM1 < /etc/mqm/init.mqsc &&
+      tail -f /dev/null"
 
   shipment-processor:
     build:
