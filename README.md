@@ -85,7 +85,7 @@ Before running the project, you need to have the following installed:
 4. **Reconstruir los servicios / Rebuilding the services**:
    Si haces cambios en el código y necesitas reconstruir los contenedores, ejecuta / If you make changes to the code and need to rebuild the containers, run:
     ```bash
-    docker-compose up --build
+    docker-compose up -d --build
     ```
 
 ## Cómo Funciona / How It Works
