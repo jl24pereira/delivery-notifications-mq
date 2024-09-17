@@ -6,11 +6,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service for processing shipment requests.
+ */
 @Service
 public class ShipmentService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShipmentService.class);
     private final MessageSenderService messageSenderService;
 
+    /**
+     * Constructor for initializing the ShipmentService.
+     *
+     * @param messageSenderService The service responsible for sending shipment messages.
+     */
     public ShipmentService(MessageSenderService messageSenderService) {
         this.messageSenderService = messageSenderService;
     }
@@ -19,12 +27,10 @@ public class ShipmentService {
      * Processes a shipment request, sends the shipment details to the request queue,
      * and waits for a response in the response queue.
      *
-     * @param shipmentRequest The shipment request DTO containing shipment details
-     * @return ShipmentResponseDTO indicating success or failure
+     * @param shipmentRequest The shipment request DTO containing shipment details.
+     * @return A ShipmentResponseDTO indicating success or failure.
      */
     public ShipmentResponseDTO processShipment(ShipmentRequestDTO shipmentRequest) {
-        // Delegate to MessageSenderService to send the message to the request queue
         return messageSenderService.sendShipmentMessage(shipmentRequest);
-
     }
 }

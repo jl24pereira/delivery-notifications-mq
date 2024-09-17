@@ -1,21 +1,25 @@
 package com.jlpereira.mq_shipment_processor.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuration class for application-wide beans.
+ */
 @Configuration
 public class AppConfig {
 
     /**
-     * Creates and configures a new ObjectMapper bean.
-     * The ObjectMapper is used to convert between Java objects and JSON representations.
-     * This bean will be available for injection across the entire application wherever it's required.
+     * Provides a configured {@link ObjectMapper} bean.
      *
-     * @return A default instance of ObjectMapper
+     * @return A configured {@link ObjectMapper} instance.
      */
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
     }
 }

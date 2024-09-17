@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service for processing shipment messages and sending notifications.
+ */
 @Service
 public class ShipmentService {
 
@@ -24,8 +27,10 @@ public class ShipmentService {
     /**
      * Constructor to initialize the shipment service.
      *
-     * @param notificationService The service responsible for sending notifications (e.g., email)
-     * @param jmsTemplate         The JMS template for interacting with the message queue
+     * @param notificationService The service for sending notifications.
+     * @param jmsTemplate         The JMS template for interacting with the message queue.
+     * @param responseQueue       The queue for sending response messages.
+     * @param objectMapper        The object mapper for serializing JSON.
      */
     public ShipmentService(NotificationService notificationService, JmsTemplate jmsTemplate, Queue responseQueue, ObjectMapper objectMapper) {
         this.notificationService = notificationService;
@@ -35,29 +40,27 @@ public class ShipmentService {
     }
 
     /**
-     * Processes a shipment message received from the message queue.
-     * It sends a notification to the customer and responds back to the response queue indicating
-     * whether the notification was sent successfully or not.
+     * Processes the shipment message and sends a notification to the customer.
+     * Responds to the queue with success or failure of the notification.
      *
-     * @param shipmentMessageDTO The shipment details to be processed (order ID, tracking number, etc.)
-     * @param correlationId      The unique correlation ID used to associate the request and the response in the queue
+     * @param shipmentMessageDTO The shipment details.
+     * @param correlationId      The correlation ID for tracking the response.
      */
     public void processShipment(ShipmentMessageDTO shipmentMessageDTO, String correlationId) {
         boolean emailSent = sendNotification(shipmentMessageDTO);
         ShipmentResponseDTO responseDTO = new ShipmentResponseDTO(
                 shipmentMessageDTO.orderId(),
-                emailSent ? "SUCCESS":"FAILED",
+                emailSent ? "SUCCESS" : "FAILED",
                 emailSent ? "Email sent successfully" : "Email sending failed"
         );
         sendResponseMessage(correlationId, responseDTO);
     }
 
     /**
-     * Sends a notification email to the customer based on the shipment details provided.
-     * The email contains the order ID, tracking number, and the shipping date.
+     * Sends a notification email to the customer with shipment details.
      *
-     * @param shipmentMessageDTO The DTO containing the shipment details (order ID, email, tracking number, etc.)
-     * @return true if the email was sent successfully, false otherwise
+     * @param shipmentMessageDTO The shipment details.
+     * @return true if the email was sent successfully, false otherwise.
      */
     private boolean sendNotification(ShipmentMessageDTO shipmentMessageDTO) {
         String emailBody = "Dear customer,\n\n" +
@@ -78,10 +81,10 @@ public class ShipmentService {
     }
 
     /**
-     * Sends a response message to the response queue indicating success or failure of the email.
+     * Sends a response message to the queue indicating the result of the notification.
      *
-     * @param correlationId The correlation ID to link request and response
-     * @param responseDTO   The response DTO to send as JSON
+     * @param correlationId The correlation ID for the response.
+     * @param responseDTO   The response DTO.
      */
     private void sendResponseMessage(String correlationId, ShipmentResponseDTO responseDTO) {
         try {
@@ -89,15 +92,14 @@ public class ShipmentService {
 
             jmsTemplate.send(responseQueue, session -> {
                 TextMessage response = session.createTextMessage(responseJson);
-                response.setJMSCorrelationID(correlationId); // Set the same correlation ID
+                response.setJMSCorrelationID(correlationId);
                 return response;
             });
 
-            LOGGER.info("Sent response message: {}  with Correlation ID: {}", responseJson, correlationId);
+            LOGGER.info("Sent response message: {} with Correlation ID: {}", responseJson, correlationId);
 
         } catch (JsonProcessingException e) {
             LOGGER.error("Error sending response for orderId: {}", responseDTO.orderId(), e);
         }
-
     }
 }

@@ -6,6 +6,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Random;
 
+/**
+ * Service for simulating email notifications.
+ */
 @Service
 public class NotificationService {
 
@@ -15,12 +18,11 @@ public class NotificationService {
 
     /**
      * Simulates sending an email to a customer.
-     * Logs the email details and randomly determines if the email was sent successfully.
      *
-     * @param to      The recipient's email address
-     * @param subject The subject of the email
-     * @param body    The body content of the email
-     * @return true if the email was successfully sent, false if there was a failure (simulated)
+     * @param to      The recipient's email address.
+     * @param subject The subject of the email.
+     * @param body    The body content of the email.
+     * @return true if the email was sent successfully, false if it failed (simulated).
      */
     public boolean sendEmail(String to, String subject, String body) {
         LOG.info("Sending email with shipment details to: {}", to);

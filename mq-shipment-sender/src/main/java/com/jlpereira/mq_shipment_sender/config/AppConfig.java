@@ -5,15 +5,16 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuration class for creating beans.
+ */
 @Configuration
 public class AppConfig {
 
     /**
-     * Creates and configures a new ObjectMapper bean.
-     * The ObjectMapper is used to convert between Java objects and JSON representations.
-     * This bean will be available for injection across the entire application wherever it's required.
+     * Provides a configured {@link ObjectMapper} bean for JSON serialization/deserialization.
      *
-     * @return A default instance of ObjectMapper
+     * @return Configured {@link ObjectMapper} instance.
      */
     @Bean
     public ObjectMapper objectMapper() {

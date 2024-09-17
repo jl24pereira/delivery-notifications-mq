@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller for handling shipment requests.
+ */
 @RestController
 @RequestMapping("/api/shipments")
 public class ShipmentController {
@@ -19,6 +22,11 @@ public class ShipmentController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShipmentController.class);
     private final ShipmentService shipmentService;
 
+    /**
+     * Constructor for initializing the ShipmentController.
+     *
+     * @param shipmentService The service responsible for processing shipments.
+     */
     public ShipmentController(ShipmentService shipmentService) {
         this.shipmentService = shipmentService;
     }
@@ -26,18 +34,16 @@ public class ShipmentController {
     /**
      * Endpoint to process a shipment request.
      *
-     * @param shipmentRequest The shipment request DTO containing shipment details
-     * @return ResponseEntity containing the shipment response (success or failure)
+     * @param shipmentRequest The shipment request DTO containing shipment details.
+     * @return ResponseEntity containing the shipment response (success or failure).
      */
     @PostMapping
     public ResponseEntity<ShipmentResponseDTO> createShipment(@RequestBody ShipmentRequestDTO shipmentRequest) {
         try {
             LOGGER.info("Received shipment request for orderId: {}", shipmentRequest.orderId());
 
-            // Call the shipment service to process the shipment
             ShipmentResponseDTO response = shipmentService.processShipment(shipmentRequest);
 
-            // Return the appropriate HTTP status based on the result
             if ("SUCCESS".equalsIgnoreCase(response.status())) {
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {

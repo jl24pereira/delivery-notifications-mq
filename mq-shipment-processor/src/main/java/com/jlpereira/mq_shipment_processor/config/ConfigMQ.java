@@ -13,9 +13,7 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
- * Configuration class for setting up IBM MQ connection and JMS messaging.
- * This class defines the necessary beans to establish a connection with IBM MQ,
- * create a JMS listener container, and provide a JmsTemplate for sending messages.
+ * Configuration for IBM MQ and JMS messaging.
  */
 @Configuration
 @EnableJms
@@ -37,33 +35,27 @@ public class ConfigMQ {
     private String responseQueue;
 
     /**
-     * Creates and configures the MQConnectionFactory bean for IBM MQ.
-     * The connection factory is responsible for establishing connections to the IBM MQ server.
-     * It uses the provided host, port, queue manager, and channel properties to configure the connection.
+     * Configures the IBM MQ connection factory.
      *
-     * @return MQConnectionFactory configured with the necessary IBM MQ properties
-     * @throws Exception if there is an error during the creation of the connection factory
+     * @return Configured MQConnectionFactory.
+     * @throws JMSException if any error occurs during setup.
      */
     @Bean
-    public MQConnectionFactory mqConnectionFactory() throws Exception {
+    public MQConnectionFactory mqConnectionFactory() throws JMSException {
         MQConnectionFactory factory = new MQConnectionFactory();
-
         factory.setHostName(host);
         factory.setPort(port);
         factory.setQueueManager(queueManager);
         factory.setChannel(channel);
-
-        // Set the connection mode to client
         factory.setIntProperty(CommonConstants.WMQ_CONNECTION_MODE, CommonConstants.WMQ_CM_CLIENT);
         return factory;
     }
 
     /**
-     * Creates and configures the JMS listener container factory.
-     * This factory is used to create JMS listeners that will be able to receive messages from IBM MQ.
+     * Configures the JMS listener container factory.
      *
-     * @param mqConnectionFactory The MQConnectionFactory used to connect to IBM MQ
-     * @return DefaultJmsListenerContainerFactory for setting up JMS listeners
+     * @param mqConnectionFactory The MQ connection factory.
+     * @return Configured DefaultJmsListenerContainerFactory.
      */
     @Bean
     public DefaultJmsListenerContainerFactory jmsListenerContainerFactory(MQConnectionFactory mqConnectionFactory) {
@@ -73,11 +65,10 @@ public class ConfigMQ {
     }
 
     /**
-     * Creates and configures the JmsTemplate bean for sending messages to IBM MQ.
-     * The JmsTemplate simplifies sending and receiving messages to/from IBM MQ.
+     * Configures the JMS template for sending messages.
      *
-     * @param mqConnectionFactory The MQConnectionFactory used to connect to IBM MQ
-     * @return JmsTemplate configured to work with IBM MQ
+     * @param mqConnectionFactory The MQ connection factory.
+     * @return Configured JmsTemplate.
      */
     @Bean
     public JmsTemplate jmsTemplate(MQConnectionFactory mqConnectionFactory) {
@@ -85,10 +76,10 @@ public class ConfigMQ {
     }
 
     /**
-     * Bean que representa la cola de respuestas.
+     * Configures the response queue.
      *
-     * @return La cola de respuestas
-     * @throws JMSException si hay algún problema al configurar la cola
+     * @return Configured Queue.
+     * @throws JMSException if any error occurs.
      */
     @Bean
     public Queue responseQueue() throws JMSException {

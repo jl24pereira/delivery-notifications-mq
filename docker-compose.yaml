@@ -1,13 +1,18 @@
 services:
   ibmmq:
-    image: 'docker.io/ibmcom/mq'
+    image: 'icr.io/ibm-messaging/mq:latest'
     environment:
       - LICENSE=accept
       - MQ_QMGR_NAME=QM1
+      - MQ_AUTH=none
     ports:
       - '1414:1414'
       - '9443:9443'
+    volumes:
+      - ./init.mqsc:/etc/mqm/init.mqsc
     container_name: ibmmq
+    command: >
+      sh -c 'mqdevserver && echo "Applying custom MQSC config" && runmqsc QM1 < /etc/mqm/init.mqsc'
 
   shipment-processor:
     build:
