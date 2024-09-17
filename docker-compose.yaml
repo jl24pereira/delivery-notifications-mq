@@ -7,16 +7,7 @@ services:
     ports:
       - '1414:1414'
       - '9443:9443'
-    volumes:
-      - ./init.mqsc:/etc/mqm/init.mqsc
     container_name: ibmmq
-    command: >
-      /bin/sh -c "
-      echo 'Initializing config queue manager' &&
-      crtmqm -q QM1 &&
-      strmqm QM1 &&
-      runmqsc QM1 < /etc/mqm/init.mqsc &&
-      tail -f /dev/null"
 
   shipment-processor:
     build:
